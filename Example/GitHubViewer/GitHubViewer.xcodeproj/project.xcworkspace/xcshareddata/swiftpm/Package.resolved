@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Mocha",
+        "repositoryURL": "https://github.com/yuta24/Mocha.git",
+        "state": {
+          "branch": null,
+          "revision": "8e282c671f042e0a8ec26da81d38562027a6984f",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
