@@ -1,7 +1,42 @@
 import Foundation
 import Combine
 
-open class Client: NSObject {
+func makeURLRequest<R>(request: R, with baseURL: URL) -> URLRequest where R: Request {
+    let url = baseURL.appendingPathComponent(request.path)
+    var urlRequest = URLRequest(url: url)
+
+    urlRequest.httpMethod = request.method.rawValue
+    request.headers.forEach { key, value in
+        urlRequest.setValue(value, forHTTPHeaderField: key)
+    }
+    if !request.queryPrameters.isEmpty, var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) {
+        components.queryItems = [URLQueryItem]()
+        for (key, value) in request.queryPrameters {
+            switch value {
+            case let values as [Any?]:
+                components.queryItems?.append(contentsOf: values.compactMap {
+                    if let value = $0 {
+                        return URLQueryItem(name: key, value: "\(value)")
+                    } else {
+                     return nil
+                    }
+                })
+            case let value:
+                components.queryItems?.append(URLQueryItem(name: key, value: "\(String(describing: value))"))
+            }
+        }
+        urlRequest.url = components.url
+    }
+    if !request.bodyParameters.isEmpty {
+        let data = try! JSONSerialization.data(withJSONObject: request.bodyParameters, options: .init())
+        urlRequest.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        urlRequest.httpBody = data
+    }
+
+    return urlRequest
+}
+
+open class Client {
     public enum Failure: Error {
         case network(Network.Failure)
         case decode(Error)
@@ -29,41 +64,6 @@ open class Client: NSObject {
                 completionHandler(.failure(.network(error)))
             }
         }
-    }
-
-    func makeURLRequest<R>(request: R, with baseURL: URL) -> URLRequest where R: Request {
-        let url = baseURL.appendingPathComponent(request.path)
-        var urlRequest = URLRequest(url: url)
-
-        urlRequest.httpMethod = request.method.rawValue
-        request.headers.forEach { key, value in
-            urlRequest.setValue(value, forHTTPHeaderField: key)
-        }
-        if !request.queryPrameters.isEmpty, var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) {
-            components.queryItems = [URLQueryItem]()
-            for (key, value) in request.queryPrameters {
-                switch value {
-                case let values as [Any?]:
-                    components.queryItems?.append(contentsOf: values.compactMap {
-                        if let value = $0 {
-                            return URLQueryItem(name: key, value: "\(value)")
-                        } else {
-                         return nil
-                        }
-                    })
-                case let value:
-                    components.queryItems?.append(URLQueryItem(name: key, value: "\(String(describing: value))"))
-                }
-            }
-            urlRequest.url = components.url
-        }
-        if !request.bodyParameters.isEmpty {
-            let data = try! JSONSerialization.data(withJSONObject: request.bodyParameters, options: .init())
-            urlRequest.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
-            urlRequest.httpBody = data
-        }
-
-        return urlRequest
     }
 }
 
