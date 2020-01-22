@@ -1,15 +1,15 @@
 import Foundation
 import Combine
 
-func makeURLRequest<R>(request: R, with baseURL: URL) -> URLRequest where R: Request {
-    let url = baseURL.appendingPathComponent(request.path)
+func makeURLRequest<R>(request: R, with url: URL) -> URLRequest where R: Request {
+    let url = url.appendingPathComponent(request.path)
     var urlRequest = URLRequest(url: url)
 
     urlRequest.httpMethod = request.method.rawValue
     request.headers.forEach { key, value in
         urlRequest.setValue(value, forHTTPHeaderField: key)
     }
-    if !request.queryPrameters.isEmpty, var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) {
+    if !request.queryPrameters.isEmpty, var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
         components.queryItems = [URLQueryItem]()
         for (key, value) in request.queryPrameters {
             switch value {
