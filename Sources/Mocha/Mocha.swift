@@ -62,14 +62,20 @@ open class Network {
             case 200...299:
                 completionHandler(.success((data, response)))
             case 400...499:
-                retrier?.retry(request, completionHandler: { [weak self] result in
-                    switch result {
-                    case .success:
-                        self?.perform(with: request, completionHandler: completionHandler)
-                    case .failure(let error):
-                        completionHandler(.failure(.unauthorize(error)))
+                if let retrier = retrier {
+                    retrier.retry(request) { [weak self] result in
+                        switch result {
+                        case .success:
+                            self?.perform(with: request, completionHandler: completionHandler)
+                        case .failure(let error):
+                            completionHandler(.failure(.unauthorize(error)))
+                        }
                     }
-                })
+                } else if let error = error {
+                    completionHandler(.failure(.unauthorize(error)))
+                } else {
+                    completionHandler(.failure(.unsupport(response)))
+                }
             case 500...599:
                 completionHandler(.failure(.server(response.statusCode, data)))
             default:
