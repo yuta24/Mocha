@@ -7,11 +7,12 @@
 
 import Foundation
 
-public struct RequestLogging: Interceptor {
+public struct cURLRequestLogging: Interceptor {
     public init() {
     }
 
     public func request(_ request: URLRequest) -> URLRequest {
+        debugPrint(cURL(request))
         return request
     }
 
