@@ -21,8 +21,10 @@ func makeURLRequest<R>(request: R, with url: URL) -> URLRequest where R: Request
                      return nil
                     }
                 })
-            case let value:
+            case .some(let value):
                 components.queryItems?.append(URLQueryItem(name: key, value: "\(String(describing: value))"))
+            case .none:
+                break
             }
         }
         urlRequest.url = components.url
