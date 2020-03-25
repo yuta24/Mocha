@@ -1,29 +1,25 @@
 import Foundation
 
 public func cURL(_ request: URLRequest) -> String {
-    guard let url = request.url
-        , let method = request.httpMethod else {
-            return "$ curl command could not be created"
+    var result = "curl -k "
+
+    if let method = request.httpMethod {
+        result += "-X \(method) \\\n"
     }
 
-    var components = ["$ curl -v"]
-
-    components.append("-X \(method)")
-
-    for header in request.allHTTPHeaderFields ?? [:] {
-        let escapedValue = header.value.replacingOccurrences(of: "\"", with: "\\\"")
-        components.append("-H \"\(header.key): \(escapedValue)\"")
+    if let headers = request.allHTTPHeaderFields {
+        for (header, value) in headers {
+            result += "-H \"\(header): \(value)\" \\\n"
+        }
     }
 
-    if let httpBodyData = request.httpBody {
-        let httpBody = String(decoding: httpBodyData, as: UTF8.self)
-        var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
-        escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
-
-        components.append("-d \"\(escapedBody)\"")
+    if let body = request.httpBody, !body.isEmpty, let string = String(data: body, encoding: .utf8), !string.isEmpty {
+        result += "-d '\(string)' \\\n"
     }
 
-    components.append("\"\(url.absoluteString)\"")
+    if let url = request.url {
+        result += url.absoluteString
+    }
 
-    return components.joined(separator: " \\\n\t")
+    return result
 }
