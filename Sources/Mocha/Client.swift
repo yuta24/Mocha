@@ -16,13 +16,13 @@ func makeURLRequest<R>(request: R, with url: URL) -> URLRequest where R: Request
             case let values as [Any?]:
                 components.queryItems?.append(contentsOf: values.compactMap {
                     if let value = $0 {
-                        return URLQueryItem(name: key, value: "\(value)")
+                        return URLQueryItem(name: key, value: "\(value)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed))
                     } else {
                      return nil
                     }
                 })
             case .some(let value):
-                components.queryItems?.append(URLQueryItem(name: key, value: "\(String(describing: value))"))
+                components.queryItems?.append(URLQueryItem(name: key, value: "\(value)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)))
             case .none:
                 break
             }
